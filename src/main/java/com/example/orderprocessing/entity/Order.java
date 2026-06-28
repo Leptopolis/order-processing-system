@@ -1,7 +1,7 @@
 package com.example.orderprocessing.entity;
 
 import com.example.orderprocessing.enums.OrderStatus;
-import jakarata.persistence.*;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
