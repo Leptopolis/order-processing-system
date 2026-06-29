@@ -212,6 +212,34 @@ public class PaymentService{
 
             CompletableFuture<SendResult<String, String> future = 
                 kafkaTemplate.send(PAYMENT_TOPIC, order.getOrderNumber(), message);
+            future.whenComplete((result, ex)->{
+                if(ex == null) {
+                    log.info("Event is sent to kafka for order: {}", order.getOrderNumber());
+                } else{
+                    log.error("Error int sending order {} to Kafka", order.getOrderNumber());
+                }
+            });
+        }
+    }
+
+    @Async
+    public void sendRefundEvent(Order order){
+        try{
+            OrderEvent event = OrderEvent.builder()
+                .orderId(order.getId())
+                .orderNumber(order.getOrderNumber())
+                .eventType("REFUND")
+                .status(order.getStatus().name())
+                .totalAmount(order.getTotalAmount())
+                .timestamp(LocalDateTime.now())
+                .customerEmail(order.getCustomer().getEmail())
+                .build();
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send(REFUND_TOPIC, order.getOrderNumber(), message);
+
+            log.info("Refund event is sent to Kafka for order: {}", order.getOrderNumber());
+        } catch(JsonProcessingException e){
+            log.error("Error in serialising refund event: {}", e.getMessage());
         }
     }
  
